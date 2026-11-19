@@ -1,0 +1,39 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101c14">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Nature & Animaux VDI — Démarrage</title>
+    <link rel="stylesheet" href="./style.css">
+    <script src="./script.js" defer></script>
+</head>
+<body>
+    <main class="launcher">
+        <video
+            id="startupVideo"
+            class="startup-video"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="auto"
+            aria-hidden="true"
+        >
+            <source src="./videos/nature-animaux.mp4" type="video/mp4">
+        </video>
+
+        <div class="video-overlay"></div>
+
+        <section class="loading-panel" aria-live="polite">
+            <div class="spinner" aria-hidden="true"></div>
+            <p id="statusMessage">Connexion à Nature & Animaux...</p>
+            <button id="retryButton" type="button" hidden>
+                Réessayer
+            </button>
+        </section>
+    </main>
+</body>
+</html>
