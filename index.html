@@ -6,10 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#101c14">
     <meta name="robots" content="noindex, nofollow">
+
     <title>Nature & Animaux VDI — Démarrage</title>
+
+    <!-- Icônes du launcher -->
+    <link rel="icon" type="image/png" href="./icons/icon-192.png">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+    <!-- Configuration d'installation sur téléphone -->
+    <link rel="manifest" href="./manifest.json">
+
+    <!-- Styles et fonctionnement existants -->
     <link rel="stylesheet" href="./style.css">
     <script src="./script.js" defer></script>
 </head>
+
 <body>
     <main class="launcher">
         <video
@@ -29,7 +40,11 @@
 
         <section class="loading-panel" aria-live="polite">
             <div class="spinner" aria-hidden="true"></div>
-            <p id="statusMessage">Connexion à Nature & Animaux...</p>
+
+            <p id="statusMessage">
+                Connexion à Nature & Animaux...
+            </p>
+
             <button id="retryButton" type="button" hidden>
                 Réessayer
             </button>
