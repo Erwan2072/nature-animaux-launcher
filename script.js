@@ -1,4 +1,6 @@
 
+'use strict';
+
 //#region CONFIGURATION
 
 const RENDER_URL = 'https://nature-animaux-vdi.onrender.com';
@@ -6,9 +8,20 @@ const HEALTH_URL = `${RENDER_URL}/api/health`;
 
 const CHECK_INTERVAL = 3000;
 const REQUEST_TIMEOUT = 8000;
+const MIN_VIDEO_DURATION = 20000;
+const MAX_ATTEMPTS = 30;
+
+// Adresse du launcher
+const LAUNCHER_URL = 'https://nature-animaux-launcher.onrender.com';
+
+// Mode installation :
+// https://nature-animaux-launcher.onrender.com/?install=1
+const INSTALL_MODE = new URLSearchParams(window.location.search)
+    .get('install') === '1';
 
 const statusMessage = document.getElementById('statusMessage');
 const retryButton = document.getElementById('retryButton');
+const startupVideo = document.getElementById('startupVideo');
 
 let running = false;
 
@@ -23,7 +36,23 @@ function wait(milliseconds) {
 }
 
 function updateStatus(message) {
-    statusMessage.textContent = message;
+    if (statusMessage) {
+        statusMessage.textContent = message;
+    }
+}
+
+function playVideo() {
+    if (!startupVideo) return;
+
+    startupVideo.muted = true;
+
+    const playback = startupVideo.play();
+
+    if (playback && typeof playback.catch === 'function') {
+        playback.catch(error => {
+            console.warn('Lecture vidéo impossible :', error.message);
+        });
+    }
 }
 
 //#endregion
@@ -71,23 +100,58 @@ async function startLauncher() {
     if (running) return;
 
     running = true;
-    retryButton.hidden = true;
+
+    if (retryButton) {
+        retryButton.hidden = true;
+    }
+
+    playVideo();
+
+    // Empêche la redirection pendant l'installation
+    if (INSTALL_MODE) {
+        updateStatus(
+            'Installation Nature & Animaux VDI : utilisez le menu ⋮ de Chrome pour ajouter cette page à votre écran d’accueil.'
+        );
+
+        running = false;
+        return;
+    }
 
     updateStatus('Connexion à Nature & Animaux...');
 
+    const startTime = Date.now();
     let attempts = 0;
+    let serverReady = false;
 
     while (running) {
-        const ready = await checkServer();
 
-        if (ready) {
-            updateStatus('Application prête !');
+        if (!serverReady) {
+            serverReady = await checkServer();
+
+            if (!serverReady) {
+                attempts++;
+            }
+        }
+
+        const elapsed = Date.now() - startTime;
+        const remaining = MIN_VIDEO_DURATION - elapsed;
+
+        // Serveur prêt : attendre au minimum 20 secondes
+        if (serverReady) {
+
+            if (remaining > 0) {
+                updateStatus(
+                    'Application prête ! Ouverture dans quelques secondes...'
+                );
+
+                await wait(remaining);
+            }
+
+            updateStatus('Ouverture de Nature & Animaux VDI...');
 
             window.location.replace(RENDER_URL);
             return;
         }
-
-        attempts++;
 
         if (attempts >= 3) {
             updateStatus(
@@ -95,12 +159,15 @@ async function startLauncher() {
             );
         }
 
-        if (attempts >= 30) {
+        if (attempts >= MAX_ATTEMPTS) {
             updateStatus(
                 'Le serveur met plus de temps que prévu à démarrer.'
             );
 
-            retryButton.hidden = false;
+            if (retryButton) {
+                retryButton.hidden = false;
+            }
+
             running = false;
             return;
         }
@@ -113,10 +180,14 @@ async function startLauncher() {
 
 //#region ÉVÉNEMENTS
 
-retryButton.addEventListener('click', startLauncher);
+if (retryButton) {
+    retryButton.addEventListener('click', startLauncher);
+}
 
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startLauncher);
+} else {
     startLauncher();
-});
+}
 
 //#endregion
